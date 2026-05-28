@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tonnage. — Strength Tracker for Serious Lifters</title>
+<meta name="description" content="Tonnage is a periodized strength-training tracker for Android. Track volume, MEV/MRV, and generate AI training plans.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@300;400;600;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #0d0f0a;
+    --surface:    #141710;
+    --surface2:   #1a1e14;
+    --border:     #2a2e22;
+    --accent:     #c8e84a;
+    --accent-dim: rgba(200,232,74,0.08);
+    --accent-glow:rgba(200,232,74,0.15);
+    --text:       #e8ecde;
+    --muted:      #7a8266;
+    --warn:       #e07758;
+    --mono:       'DM Mono', monospace;
+    --display:    'Barlow Condensed', sans-serif;
+    --body:       'Barlow', sans-serif;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+    background: rgba(13,15,10,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 6rem 2rem 4rem;
+  }
+
+  /* background grid */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.35;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black, transparent);
+  }
+
+  /* radial glow */
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,232,74,0.25);
+    padding: 0.25rem 0.7rem;
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(3.5rem, 8vw, 6.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-title .accent { color: var(--accent); }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 420px;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+  }
+
+  .hero-sub strong { color: var(--text); }
+
+  .btn-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.8rem;
+    background: var(--accent);
+    color: #0d0f0a;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-2px); }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.8rem;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* phone mockup */
+  .hero-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .phone-frame {
+    width: 240px;
+    height: 480px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 36px;
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(200,232,74,0.08),
+      0 40px 80px rgba(0,0,0,0.6),
+      0 0 60px rgba(200,232,74,0.06);
+    overflow: hidden;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .phone-notch {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    z-index: 2;
+  }
+
+  .phone-screen {
+    position: absolute;
+    inset: 0;
+    padding: 32px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ps-label {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .ps-title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .ps-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+
+  .ps-card-label {
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .ps-card-val {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .ps-card-val span { color: var(--accent); font-size: 0.7rem; }
+
+  .ps-bar-wrap { margin-top: 8px; }
+  .ps-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+
+  .ps-bar-name {
+    font-family: var(--mono);
+    font-size: 0.48rem;
+    color: var(--muted);
+    width: 38px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+
+  .ps-bar-bg {
+    flex: 1;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .ps-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+
+  .ps-bar-fill.warn { background: var(--warn); }
+  .ps-bar-fill.ok   { background: #4ae87a; }
+
+  /* floating chips */
+  .chip {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text);
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .chip-1 { top: 15%; right: -30px; animation: float 4s ease-in-out infinite 0.5s; }
+  .chip-2 { bottom: 25%; left: -40px; animation: float 4s ease-in-out infinite 1s; }
+  .chip-accent { color: var(--accent); }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 1.5rem 0;
+    overflow: hidden;
+  }
+
+  .stats-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+
+  .stat-item { text-align: center; }
+
+  .stat-num {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+    display: block;
+  }
+
+  .stat-lbl {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-top: 0.3rem;
+  }
+
+  /* ── FEATURES ── */
+  .features {
+    padding: 6rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+  }
+
+  .section-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 500px;
+    margin-bottom: 4rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    padding: 2rem;
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  .feature-card:hover { background: var(--surface2); }
+
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,232,74,0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+    font-size: 1.1rem;
+  }
+
+  .feature-name {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    color: var(--text);
+  }
+
+  .feature-desc {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .feature-tag {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how {
+    padding: 6rem 2rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .how-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+    position: relative;
+  }
+
+  .steps-grid::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: calc(12.5% + 20px);
+    right: calc(12.5% + 20px);
+    height: 1px;
+    background: var(--border);
+  }
+
+  .step-item { text-align: center; position: relative; }
+
+  .step-num {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    background: var(--bg);
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .step-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── CTA ── */
+  .cta {
+    padding: 7rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 500px;
+    height: 300px;
+    background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-inner { position: relative; z-index: 1; }
+
+  .cta-title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  .cta-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+  }
+
+  .play-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--text);
+    color: var(--bg);
+    padding: 0.9rem 1.8rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: var(--body);
+    font-weight: 500;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .play-badge:hover { opacity: 0.9; transform: translateY(-2px); }
+
+  .play-badge svg { flex-shrink: 0; }
+
+  .play-badge-text { text-align: left; line-height: 1.2; }
+  .play-badge-text small { display: block; font-size: 0.65rem; opacity: 0.6; }
+  .play-badge-text strong { font-size: 1rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 2.5rem 0;
+  }
+
+  .footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-logo {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .footer-links a {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .footer-links a:hover { color: var(--accent); }
+
+  .footer-copy {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    width: 100%;
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; text-align: center; gap: 3rem; }
+    .hero-sub { margin: 0 auto 2.5rem; }
+    .btn-group { justify-content: center; }
+    .hero-visual { order: -1; }
+    .chip-1, .chip-2 { display: none; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .steps-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .steps-grid::before { display: none; }
+    .stats-inner { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .features-grid { grid-template-columns: 1fr; }
+    .steps-grid { grid-template-columns: 1fr; }
+    .stats-inner { grid-template-columns: repeat(2,1fr); gap: 1rem; }
+    .footer-inner { flex-direction: column; text-align: center; }
+    .footer-links { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+  }
+
+  /* entrance animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-tag    { animation: fadeUp 0.5s ease both 0.1s; }
+  .hero-title  { animation: fadeUp 0.5s ease both 0.2s; }
+  .hero-sub    { animation: fadeUp 0.5s ease both 0.3s; }
+  .btn-group   { animation: fadeUp 0.5s ease both 0.4s; }
+  .hero-visual { animation: fadeUp 0.6s ease both 0.5s; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">Tonnage.</a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="privacy-policy.html">Privacy</a></li>
+      <li><a href="delete-account.html">Delete Account</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <span class="hero-tag">Strength Tracker for Android</span>
+      <h1 class="hero-title">
+        Train<br>
+        by the<br>
+        <span class="accent">numbers.</span>
+      </h1>
+      <p class="hero-sub">
+        <strong>Tonnage.</strong> is a periodized strength tracker built for lifters who care about
+        volume — not step counts. Track MEV &amp; MRV, generate AI plans, and log every kg you move.
+      </p>
+      <div class="btn-group">
+        <a class="btn-primary" href="https://play.google.com/store/apps/details?id=com.barathsurya.tonnage" target="_blank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.83 1-.83 1.5-.46l15 8.5c.5.29.5 1 0 1.29l-15 8.5C3.5 21.62 3 21.33 3 20.5z"/></svg>
+          Get on Google Play
+        </a>
+        <a class="btn-ghost" href="#features">See Features</a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <!-- Floating chips -->
+      <div class="chip chip-1">📈 <span class="chip-accent">+12kg</span> this week</div>
+      <div class="chip chip-2">✅ MEV reached · <span class="chip-accent">Chest</span></div>
+
+      <!-- Phone mockup -->
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="ps-label">Dashboard</div>
+          <div class="ps-title">Tonnage.</div>
+
+          <div class="ps-card">
+            <div class="ps-card-label">Weekly Volume</div>
+            <div class="ps-card-val">8,420 <span>kg total</span></div>
+          </div>
+
+          <div class="ps-card">
+            <div class="ps-card-label">Muscle Volume vs MEV/MRV</div>
+            <div class="ps-bar-wrap">
+              <div class="ps-bar-row">
+                <div class="ps-bar-name">Chest</div>
+                <div class="ps-bar-bg"><div class="ps-bar-fill ok" style="width:75%"></div></div>
+              </div>
+              <div class="ps-bar-row">
+                <div class="ps-bar-name">Back</div>
+                <div class="ps-bar-bg"><div class="ps-bar-fill ok" style="width:90%"></div></div>
+              </div>
+              <div class="ps-bar-row">
+                <div class="ps-bar-name">Quads</div>
+                <div class="ps-bar-bg"><div class="ps-bar-fill warn" style="width:100%"></div></div>
+              </div>
+              <div class="ps-bar-row">
+                <div class="ps-bar-name">Delts</div>
+                <div class="ps-bar-bg"><div class="ps-bar-fill" style="width:50%"></div></div>
+              </div>
+              <div class="ps-bar-row">
+                <div class="ps-bar-name">Biceps</div>
+                <div class="ps-bar-bg"><div class="ps-bar-fill ok" style="width:65%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ps-card">
+            <div class="ps-card-label">Adherence</div>
+            <div class="ps-card-val">86<span>%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <span class="stat-num">MEV</span>
+      <span class="stat-lbl">Minimum Effective Volume tracked</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">MRV</span>
+      <span class="stat-lbl">Maximum Recoverable Volume tracked</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">AI</span>
+      <span class="stat-lbl">Gemini-powered plan generator</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">0</span>
+      <span class="stat-lbl">Account required for guest mode</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-eyebrow">Features</div>
+  <h2 class="section-title">Everything a serious<br>lifter needs.</h2>
+  <p class="section-sub">Built for intermediate and advanced lifters who train in blocks and want real data, not gamification.</p>
+
+  <div class="features-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <div class="feature-name">Workout Logger</div>
+      <p class="feature-desc">Guided set-by-set flow with rest timers, bodyweight toggle, and progressive overload tracking. Resume sessions if you close the app.</p>
+      <span class="feature-tag">Core</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-name">AI Plan Generator</div>
+      <p class="feature-desc">Describe your goal in plain text. Gemini AI builds a full periodized weekly plan tailored to your profile, experience, and schedule.</p>
+      <span class="feature-tag">AI-powered</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-name">Volume Dashboard</div>
+      <p class="feature-desc">Weekly tonnage chart, training adherence score, intensity heatmap, modality split, structural balance, and deload recommendations.</p>
+      <span class="feature-tag">Analytics</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
+      <div class="feature-name">MEV / MRV Tracking</div>
+      <p class="feature-desc">Real-time muscle volume vs. MEV and MRV targets for 9 muscle groups. Never undertrain or burn out again.</p>
+      <span class="feature-tag">Science-based</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📅</div>
+      <div class="feature-name">Plan Library</div>
+      <p class="feature-desc">Create and manage weekly training plans with multiple modalities — LIFT, POOL, BODY, and REST days all in one place.</p>
+      <span class="feature-tag">Planning</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-name">Guest Mode</div>
+      <p class="feature-desc">Use the full workout logger and plan library locally with zero sign-up. Your data stays on your device. No account, no problem.</p>
+      <span class="feature-tag">Privacy-first</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="section-eyebrow">How It Works</div>
+    <h2 class="section-title">Up and lifting<br>in minutes.</h2>
+    <div class="steps-grid">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <div class="step-title">Download</div>
+        <p class="step-desc">Install free from Google Play. No subscription, no paywall to start.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <div class="step-title">Set your profile</div>
+        <p class="step-desc">Add your age, weight, experience level and training goals. Takes 60 seconds.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <div class="step-title">Generate or build a plan</div>
+        <p class="step-desc">Let AI create a periodized plan from a prompt, or build one manually.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">04</div>
+        <div class="step-title">Train &amp; track</div>
+        <p class="step-desc">Log every session. Watch your volume, adherence, and MEV/MRV fill in real time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="cta-inner">
+    <h2 class="cta-title">Stop guessing.<br><span style="color:var(--accent)">Start tracking.</span></h2>
+    <p class="cta-sub">Free to download. No subscription required to log workouts.</p>
+    <a class="play-badge" href="https://play.google.com/store/apps/details?id=com.barathsurya.tonnage" target="_blank">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3.18 23.76c.36.2.76.24 1.14.12L15.54 12 4.32.12A1.5 1.5 0 003 1.5v21c0 .48.06.96.18 1.26z" fill="#EA4335"/>
+        <path d="M19.5 8.4l-3.96-2.28L12 9.54l3.54 3.54 3.96-2.28c1.14-.66 1.14-2.4 0-2.4z" fill="#FBBC04"/>
+        <path d="M4.32.12L15.54 12 4.32 23.88A1.5 1.5 0 013 22.5v-21c0-.54.18-1.02.48-1.38l.84 1.02z" fill="#34A853"/>
+        <path d="M15.54 12L4.32.12c.06-.06.12-.06.18-.12L19.5 8.4c.72.42.96 1.14.72 1.8L15.54 12z" fill="#4285F4"/>
+      </svg>
+      <div class="play-badge-text">
+        <small>GET IT ON</small>
+        <strong>Google Play</strong>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a class="footer-logo" href="#">Tonnage.</a>
+    <ul class="footer-links">
+      <li><a href="privacy-policy.html">Privacy Policy</a></li>
+      <li><a href="delete-account.html">Delete Account</a></li>
+      <li><a href="mailto:rvanitha2507@gmail.com">Contact</a></li>
+    </ul>
+  </div>
+  <div class="footer-inner" style="padding-top:0">
+    <p class="footer-copy">© 2025 Barath Surya · com.barathsurya.tonnage · All rights reserved</p>
+  </div>
+</footer>
+
+</body>
+</html>

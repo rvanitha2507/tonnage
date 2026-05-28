@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Account — Tonnage</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@300;600;800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f0a;
+    --surface: #141710;
+    --border: #2a2e22;
+    --accent: #c8e84a;
+    --accent-dim: rgba(200,232,74,0.08);
+    --warn: #e07758;
+    --warn-dim: rgba(224,119,88,0.08);
+    --text: #e8ecde;
+    --muted: #7a8266;
+    --mono: 'DM Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 0 2rem;
+    background: var(--surface);
+  }
+
+  .wrap {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .logo-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .app-name {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 2.4rem;
+    letter-spacing: -0.01em;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .doc-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--warn);
+    background: var(--warn-dim);
+    border: 1px solid rgba(224,119,88,0.25);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
+
+  .header-meta {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+
+  main {
+    flex: 1;
+    padding: 3.5rem 0 5rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem 2.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 0.9rem;
+  }
+
+  p { opacity: 0.85; margin-bottom: 0.8rem; }
+  p:last-child { margin-bottom: 0; }
+
+  ul {
+    list-style: none;
+    margin: 0.5rem 0;
+  }
+
+  ul li {
+    padding: 0.3rem 0 0.3rem 1.2rem;
+    position: relative;
+    opacity: 0.82;
+    font-size: 0.95rem;
+  }
+
+  ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--warn);
+    font-weight: 700;
+  }
+
+  .warn-box {
+    background: var(--warn-dim);
+    border-left: 3px solid var(--warn);
+    border-radius: 0 4px 4px 0;
+    padding: 1rem 1.2rem;
+    margin: 1.2rem 0;
+    font-size: 0.95rem;
+  }
+
+  .warn-box strong { color: var(--warn); }
+
+  .steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 0.5rem 0;
+  }
+
+  .steps li {
+    counter-increment: step;
+    padding: 0.5rem 0 0.5rem 2.4rem;
+    position: relative;
+    opacity: 0.88;
+    font-size: 0.95rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .steps li:last-child { border-bottom: none; }
+
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    width: 1.6rem;
+    height: 1.6rem;
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,232,74,0.2);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+  }
+
+  .btn {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.85rem 2rem;
+    background: var(--warn);
+    color: #fff;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+
+  .btn-sub {
+    display: block;
+    margin-top: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.8rem 0;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  footer .wrap {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .app-name { font-size: 1.9rem; }
+    main { padding: 2rem 0 4rem; }
+    .card { padding: 1.4rem 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo-line">
+      <span class="app-name">Tonnage<span style="color:var(--muted)">.</span></span>
+      <span class="doc-label">Delete Account</span>
+    </div>
+    <div class="header-meta">com.barathsurya.liftsync &nbsp;·&nbsp; Data deletion request</div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="card">
+      <h2>What gets deleted</h2>
+      <p>Submitting a deletion request will permanently remove:</p>
+      <ul>
+        <li>Your account credentials (Firebase Authentication)</li>
+        <li>All workout logs and training plans</li>
+        <li>Your personal profile (name, age, weight, height, goals)</li>
+        <li>App settings and preferences synced to the cloud</li>
+      </ul>
+      <div class="warn-box">
+        <strong>⚠ This is irreversible.</strong> Deleted data cannot be recovered. Deletion is processed within <strong>30 days</strong> of your request.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>How to request deletion</h2>
+      <ol class="steps">
+        <li>Tap the button below — it opens an email to us</li>
+        <li>Include the email address linked to your Tonnage account</li>
+        <li>Send the email; we'll confirm receipt within 2 business days</li>
+        <li>Your data will be fully deleted within 30 days</li>
+      </ol>
+
+      <a class="btn"
+        href="mailto:rvanitha2507@gmail.com?subject=Tonnage%20%E2%80%94%20Account%20Deletion%20Request&body=Hi%2C%0A%0AI%20would%20like%20to%20delete%20my%20Tonnage%20account%20and%20all%20associated%20data.%0A%0AAccount%20email%3A%20%5Byour%20account%20email%20here%5D%0A%0APlease%20confirm%20once%20deletion%20is%20complete.">
+        Request Account Deletion
+      </a>
+      <span class="btn-sub">Opens your email app · rvanitha2507@gmail.com</span>
+    </div>
+
+    <div class="card">
+      <h2>Guest mode users</h2>
+      <p>If you used Tonnage in Guest Mode (no account), all data is stored locally on your device only. Simply uninstalling the App removes all data — no request needed.</p>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Tonnage · com.barathsurya.liftsync</span>
+    <a href="index.html">Home</a> <span style="margin:0 0.5rem;opacity:0.3">·</span> <a href="privacy-policy.html">Privacy Policy</a>
+  </div>
+</footer>
+
+</body>
+</html>
